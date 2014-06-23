@@ -1,34 +1,35 @@
 var gulp = require('gulp');
-var clean = require('gulp-clean');
-
-var instances = require('./gulp-plugins-instances');
+var clean = require('gulp-rimraf');
+var komponant = require('komponant');
 
 gulp.task('clean', function () {
-  return gulp.src('build/').pipe(clean());
+  return gulp
+    .src('build/', {read: false})
+    .pipe(clean());
 });
 
-gulp.task('scripts', ['clean'], function () {
+gulp.task('scripts', function () {
 
-  return instances
+  return komponant
     .scripts()
     .pipe(gulp.dest('build/'));
 
 });
 
-gulp.task('styles', ['clean'], function () {
+gulp.task('styles', function () {
 
-  return instances
+  return komponant
     .styles()
     .pipe(gulp.dest('build/'));
 
 });
 
-gulp.task('files', ['clean'], function () {
+gulp.task('files', function () {
 
-  return instances
+  return komponant
     .files()
     .pipe(gulp.dest('build/'));
 
 });
 
-gulp.task('default', ['clean', 'scripts', 'styles', 'files']);
+gulp.task('default', ['scripts', 'files', 'styles']);

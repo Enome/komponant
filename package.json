@@ -1,0 +1,28 @@
+{
+  "name": "komponant",
+  "version": "0.0.0",
+  "description": "component.js but with bower and gulp",
+  "main": "index.js",
+  "dependencies": {
+    "es6-module-jstransform": "~0.1.4",
+    "css-url-rewriter": "~0.0.2",
+    "event-stream": "~3.1.5",
+    "gulp": "~3.8.1",
+    "gulp-clean": "~0.3.0",
+    "gulp-bower-files": "~0.2.5",
+    "gulp-filter": "~0.4.1",
+    "gulp-if": "~1.2.1",
+    "gulp-react": "~0.3.3",
+    "gulp-myth": "~0.3.1",
+    "is-module": "~1.0.0",
+    "requires": "~1.0.1",
+    "through2": "~0.5.1",
+    "gulp-rename": "^1.2.0"
+  },
+  "devDependencies": {
+    "rerequire": "~1.0.0",
+    "highland": "~1.25.4"
+  },
+  "author": "geert pasteels",
+  "license": "MIT"
+}

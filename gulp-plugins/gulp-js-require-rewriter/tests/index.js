@@ -7,147 +7,204 @@ var subject = require('../index.js');
 
 describe('gulp-wrap-commonjs', function () {
 
-  it('one', function (done) {
+  describe('bower modules', function () {
 
-    var stream = highland([{ 
-      contents: new Buffer('require("./extra/index.js");'),
-      base: './bower_components',
-      cwd:  '/home/user/work/project',
-      path: '/home/user/work/project/bower_components/jquery/index.js',
-    }]);
+    it('resolve ./', function (done) {
 
-    var expected = 'require("jquery/extra/index.js");';
+      var stream = highland([{ 
+        contents: new Buffer('require("./extra/index.js");'),
+        base: './bower_components',
+        cwd:  '/home/user/work/project',
+        path: '/home/user/work/project/bower_components/jquery/index.js',
+      }]);
 
-    stream
+      var expected = 'require("jquery/extra/index.js");';
+
+      stream
       .pipe(subject())
       .pipe(through.obj(function (file) {
         file
-          .contents
-          .toString()
-          .should
-          .eql(new Buffer(expected).toString());
+        .contents
+        .toString()
+        .should
+        .eql(new Buffer(expected).toString());
         done();
       }));
+
+    });
+
+    it('resolves ../', function (done) {
+
+      var stream = highland([{ 
+        contents: new Buffer('require("../index.js");'),
+        base: './bower_components',
+        cwd:  '/home/user/work/project',
+        path: '/home/user/work/project/bower_components/jquery/sub/index.js',
+      }]);
+
+      var expected = 'require("jquery/index.js");';
+
+      stream
+      .pipe(subject())
+      .pipe(through.obj(function (file) {
+        file
+        .contents
+        .toString()
+        .should
+        .eql(new Buffer(expected).toString());
+        done();
+      }));
+
+    });
+
+    it('resolves global module', function (done) {
+
+      var stream = highland([{ 
+        contents: new Buffer('require("react/index.js");'),
+        base: './bower_components',
+        cwd:  '/home/user/work/project',
+        path: '/home/user/work/project/bower_components/jquery/index.js',
+      }]);
+
+      var expected = 'require("react/index.js");';
+
+      stream
+      .pipe(subject())
+      .pipe(through.obj(function (file) {
+        file
+        .contents
+        .toString()
+        .should
+        .eql(new Buffer(expected).toString());
+        done();
+      }));
+
+    });
+
+    it.skip('resolves require with variable', function (done) {
+
+      var stream = highland([{ 
+        contents: new Buffer('require("./lang" + k);'),
+        base: './bower_components',
+        cwd:  '/home/user/work/project',
+        path: '/home/user/work/project/bower_components/jquery/index.js',
+      }]);
+
+      var expected = 'require("jquery/lang" + k);';
+
+      stream
+      .pipe(subject())
+      .pipe(through.obj(function (file) {
+        file
+        .contents
+        .toString()
+        .should
+        .eql(new Buffer(expected).toString());
+        done();
+      }));
+
+    });
+
+    it('resolves global module', function (done) {
+
+      var stream = highland([{ 
+        contents: new Buffer('require("react/index.js");'),
+        base: './bower_components',
+        cwd:  '/home/user/work/project',
+        path: '/home/user/work/project/bower_components/jquery/index.js',
+      }]);
+
+      var expected = 'require("react/index.js");';
+
+      stream
+      .pipe(subject())
+      .pipe(through.obj(function (file) {
+        file
+        .contents
+        .toString()
+        .should
+        .eql(new Buffer(expected).toString());
+        done();
+      }));
+
+    });
+
 
   });
 
-  it('one1', function (done) {
+  describe('local files', function () {
 
-    var stream = highland([{ 
-      contents: new Buffer('require("../index.js");'),
-      base: './bower_components',
-      cwd:  '/home/user/work/project',
-      path: '/home/user/work/project/bower_components/jquery/sub/index.js',
-    }]);
+    it('resolves ./', function (done) {
 
-    var expected = 'require("jquery/index.js");';
+      var stream = highland([{ 
+        contents: new Buffer('require("./extra.js");'),
+        base: '/home/user/work/project',
+        cwd:  '/home/user/work/project',
+        path: '/home/user/work/project/index.js',
+      }]);
 
-    stream
-      .pipe(subject())
-      .pipe(through.obj(function (file) {
-        file
-          .contents
-          .toString()
-          .should
-          .eql(new Buffer(expected).toString());
-        done();
-      }));
+      var expected = 'require("/extra.js");';
 
-  });
+      stream
+        .pipe(subject())
+        .pipe(through.obj(function (file) {
+          file
+            .contents
+            .toString()
+            .should
+            .eql(new Buffer(expected).toString());
+          done();
+        }));
 
-  it('two', function (done) {
+    });
 
-    var stream = highland([{ 
-      contents: new Buffer('require("react/index.js");'),
-      base: './bower_components',
-      cwd:  '/home/user/work/project',
-      path: '/home/user/work/project/bower_components/jquery/index.js',
-    }]);
+    it('resolves ../', function (done) {
 
-    var expected = 'require("react/index.js");';
+      var stream = highland([{ 
+        contents: new Buffer('require("../index.js");'),
+        base: '/home/user/work/project',
+        cwd:  '/home/user/work/project',
+        path: '/home/user/work/project/sub/extra.js',
+      }]);
 
-    stream
-      .pipe(subject())
-      .pipe(through.obj(function (file) {
-        file
-          .contents
-          .toString()
-          .should
-          .eql(new Buffer(expected).toString());
-        done();
-      }));
+      var expected = 'require("/index.js");';
 
-  });
+      stream
+        .pipe(subject())
+        .pipe(through.obj(function (file) {
+          file
+            .contents
+            .toString()
+            .should
+            .eql(new Buffer(expected).toString());
+          done();
+        }));
 
-  it('three', function (done) {
+    });
 
-    var stream = highland([{ 
-      contents: new Buffer('require("./extra.js");'),
-      base: '/home/user/work/project',
-      cwd:  '/home/user/work/project',
-      path: '/home/user/work/project/index.js',
-    }]);
+    it('resolves global module', function (done) {
 
-    var expected = 'require("/extra.js");';
+      var stream = highland([{ 
+        contents: new Buffer('require("react/index.js");'),
+        base: '/home/user/work/project',
+        cwd:  '/home/user/work/project',
+        path: '/home/user/work/project/index.js',
+      }]);
 
-    stream
-      .pipe(subject())
-      .pipe(through.obj(function (file) {
-        file
-          .contents
-          .toString()
-          .should
-          .eql(new Buffer(expected).toString());
-        done();
-      }));
+      var expected = 'require("react/index.js");';
 
-  });
+      stream
+        .pipe(subject())
+        .pipe(through.obj(function (file) {
+          file
+            .contents
+            .toString()
+            .should
+            .eql(new Buffer(expected).toString());
+          done();
+        }));
 
-  it('four', function (done) {
-
-    var stream = highland([{ 
-      contents: new Buffer('require("../index.js");'),
-      base: '/home/user/work/project',
-      cwd:  '/home/user/work/project',
-      path: '/home/user/work/project/sub/extra.js',
-    }]);
-
-    var expected = 'require("/index.js");';
-
-    stream
-      .pipe(subject())
-      .pipe(through.obj(function (file) {
-        file
-          .contents
-          .toString()
-          .should
-          .eql(new Buffer(expected).toString());
-        done();
-      }));
-
-  });
-
-  it('five', function (done) {
-
-    var stream = highland([{ 
-      contents: new Buffer('require("react/index.js");'),
-      base: '/home/user/work/project',
-      cwd:  '/home/user/work/project',
-      path: '/home/user/work/project/index.js',
-    }]);
-
-    var expected = 'require("react/index.js");';
-
-    stream
-      .pipe(subject())
-      .pipe(through.obj(function (file) {
-        file
-          .contents
-          .toString()
-          .should
-          .eql(new Buffer(expected).toString());
-        done();
-      }));
+    });
 
   });
 

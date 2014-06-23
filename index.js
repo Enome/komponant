@@ -9,6 +9,7 @@ var concat = require('gulp-concat');
 var filter = require('gulp-filter');
 var bower = require('gulp-bower-files');
 var gulpIf = require('gulp-if');
+var rename = require('gulp-rename');
 var isEs6Module = require('is-module');
 
 /* Local gulps */
@@ -22,20 +23,21 @@ var es6ModuleToCommonjs = require('./gulp-plugins/gulp-es6-module-to-commonjs');
 
 /* INSTANCES */
 
-/* Filters */
-
-var filterJs = filter('**/*.js');
-var filterCss = filter('**/*.css');
-var filterNotJsNotCss =  filter(['!**/*.css', '!**/*.js']);
-var filterNotBuild = filter('!build/**');
-var filterNotBowerComponents = filter('!bower_components/**');
-
-
 /* Src */
 
 var bower_files = bower();
-var bower_local_files = gulp.src(require(process.cwd() + '/bower.json').main);
-var all_files = es.merge(bower_files, bower_local_files);
+var bower_local_files;
+var all_files;
+
+var bower_local = require(process.cwd() + '/bower.json');
+var bower_local_main = bower_local.main;
+
+if (bower_local_main) {
+  bower_local_files = gulp.src(bower_local_main, { base: './' });
+  all_files = es.merge(bower_files, bower_local_files);
+} else {
+  all_files = bower_files;
+}
 
 
 /* Scripts */
@@ -58,14 +60,33 @@ var cssUrlRewriter = gulpIf(function (file) {
   return file.contents.toString().indexOf('url') !== -1; 
 }, cssUrlRewriter());
 
+/* Files */
 
-var instances = {
+var prepend_local_files = gulpIf(function (file) {
+  return file.path.indexOf('bower_components') === -1;
+}, rename(function (path) {
+  path.dirname = 'files' + '/' + path.dirname;
+}));
 
-  /* Filters */
+var prepend_bower_files = gulpIf(function (file) {
+  return file.path.indexOf('bower_components') !== -1;
+}, rename(function (path) {
+  path.dirname = 'files/' + path.dirname;
+}));
 
-  filterJs: filterJs,
-  filterCss: filterCss,
-  filterNotJsNotCss: filterNotJsNotCss,
+/* Debug */
+
+var through = require('through2');
+
+var debug = through.obj(function (file, enc, cb) {
+  console.log('path', file.path);
+  console.log('base', file.base);
+  cb(null, file);
+});
+
+/* Exports */
+
+var komponant = {
   
   /* Files */
 
@@ -90,9 +111,7 @@ var instances = {
   scripts: function () {
 
     return all_files
-      .pipe(filterNotBuild)
-      .pipe(filterNotBowerComponents)
-      .pipe(filterJs)
+      .pipe(filter(['**/*.js']))
       .pipe(es6ModuleToCommonjs)
       .pipe(react)
       .pipe(wrapCommonjs)
@@ -105,24 +124,22 @@ var instances = {
   styles: function () {
 
     return all_files
-      .pipe(filterNotBuild)
-      .pipe(filterNotBowerComponents)
-      .pipe(filterCss)
-      .pipe(myth())
+      .pipe(filter(['**/*.css']))
       .pipe(cssUrlRewriter)
-      .pipe(concat('build.css'));
+      .pipe(concat('build.css'))
+      .pipe(myth());
 
   },
 
   files: function () {
 
     return all_files
-      .pipe(filterNotBuild)
-      .pipe(filterNotBowerComponents)
-      .pipe(filterNotJsNotCss);
+      .pipe(filter(['!**/*.css', '!**/*.js']))
+      .pipe(prepend_local_files)
+      .pipe(prepend_bower_files);
 
   },
 
 };
 
-module.exports = instances;
+module.exports = komponant;

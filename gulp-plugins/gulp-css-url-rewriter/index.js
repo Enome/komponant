@@ -16,6 +16,12 @@ var transform = function (file, enc, callback) {
 
   var name = componentName(file.path);
 
+  if (name) {
+    name = '/' + name;
+  }
+
+  name = 'files' + name;
+
   var content = cssUrlRewriter(file.contents.toString(), function (url) {
     return prefix(name, url);
   });
